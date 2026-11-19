@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Генератор прошивок — FIX для HP и Xerox</title>
+<meta name="description" content="Программа собирает FIX-прошивку под конкретный принтер: HP Laser 107, 135, 137 и Xerox Phaser 3020, WorkCentre 3025. Считывает серийник и CRUM по USB, сверяет версию, собирает архив с загрузчиком.">
+<meta property="og:title" content="Генератор прошивок — FIX для HP и Xerox">
+<meta property="og:description" content="Серийник и CRUM считываются по USB, прошивка собирается за минуту. HP 107 / 135 / 137, Xerox 3020 / 3025.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0b3d2c">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700;800&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#edf0ec;
+  --paper-2:#e2e7e1;
+  --ink:#0f1f19;
+  --muted:#56665e;
+  --mask:#0b3d2c;
+  --mask-2:#0f4a36;
+  --silk:#eef4ec;
+  --silk-dim:#9db8aa;
+  --copper:#c98a3f;
+  --copper-hi:#e8ab5f;
+  --ok:#2f9e5f;
+  --line:#c9d1ca;
+  --display:'Tektur', 'Golos Text', system-ui, sans-serif;
+  --body:'Golos Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --wrap:1180px;
+  --r:6px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+img,svg{display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:3px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.08;letter-spacing:-.01em;margin:0}
+p{margin:0}
+.mono{font-family:var(--mono)}
+
+/* ---------- кнопки ---------- */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:var(--r);font:600 16px/1 var(--body);text-decoration:none;border:1.5px solid transparent;transition:background .15s,color .15s,border-color .15s;cursor:pointer;white-space:nowrap}
+.btn svg{width:18px;height:18px;flex:none}
+.btn-copper{background:var(--copper);color:#1a1006}
+.btn-copper:hover{background:var(--copper-hi)}
+.btn-line{border-color:currentColor;color:inherit}
+.btn-line:hover{background:rgba(255,255,255,.08)}
+
+/* ---------- шапка ---------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(11,61,44,.94);backdrop-filter:blur(8px);color:var(--silk);border-bottom:1px solid rgba(238,244,236,.08)}
+.top .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 17px/1 var(--display);letter-spacing:.01em;white-space:nowrap}
+.brand svg{width:30px;height:30px;flex:none}
+.nav{display:flex;gap:24px;margin-left:auto;font-size:15px}
+.nav a{text-decoration:none;color:var(--silk-dim)}
+.nav a:hover{color:var(--silk)}
+.top .btn{padding:10px 16px;font-size:15px}
+@media (max-width:860px){.nav{display:none}.top .btn{margin-left:auto}}
+@media (max-width:420px){.top .wrap{gap:10px;padding:0 16px}.brand{font-size:14px;gap:8px}.brand svg{width:26px;height:26px}.top .btn{padding:9px 12px;font-size:14px}.top .btn svg{display:none}}
+
+/* ---------- hero ---------- */
+.hero{background:var(--mask);color:var(--silk);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(1200px 500px at 85% -10%, rgba(232,171,95,.12), transparent 60%);pointer-events:none}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:center;padding-top:72px;padding-bottom:88px}
+.hero .wrap > div{min-width:0}
+.eyebrow{font:500 13px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--copper-hi)}
+.hero h1{font-size:clamp(36px,5.2vw,64px);font-weight:800;margin:18px 0 22px}
+.hero h1 em{font-style:normal;color:var(--copper-hi)}
+.hero .lead{font-size:19px;color:#cfe0d6;max-width:34ch}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.hero .facts{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:34px;font:400 13px/1.4 var(--mono);color:var(--silk-dim)}
+.hero .facts span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--copper);margin-right:8px;vertical-align:middle}
+@media (max-width:980px){.hero .wrap{grid-template-columns:1fr;gap:44px;padding-top:48px;padding-bottom:64px}}
+
+/* ---------- плата с hex ---------- */
+.board{background:#082f22;border:1px solid #1c6247;border-radius:10px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6), inset 0 0 0 4px #0a3627}
+.board-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px dashed #1c6247;font:400 12px/1.3 var(--mono);color:var(--silk-dim)}
+.board-head b{color:var(--silk);font-weight:600}
+.pins{display:flex;gap:5px}
+.pins i{width:9px;height:9px;border-radius:2px;background:var(--copper);opacity:.85}
+.hex{padding:14px 16px 6px;font:400 13px/1.75 var(--mono);color:#6f9c86;overflow:hidden;white-space:pre}
+.hex .off{color:#3f7660;margin-right:14px}
+.hex .b{display:inline-block;width:2.4ch}
+.hex .a{color:#4f8a70}
+.hex .gap{display:inline-block;width:1.2ch}
+.hex .asc{margin-left:10px}
+.hex .hit{color:var(--copper-hi)}
+.hex .crumtag{color:#a8c9b8}
+.hex .flash{background:var(--copper);color:#1a1006;border-radius:2px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px 16px;border-top:1px dashed #1c6247}
+.field label{display:block;font:500 11px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--silk-dim);margin-bottom:6px}
+.field input{width:100%;background:#05241a;border:1px solid #23684d;border-radius:4px;color:var(--silk);font:600 16px/1 var(--mono);letter-spacing:.06em;padding:11px 12px}
+.field input:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 3px rgba(201,138,63,.25)}
+.out{padding:0 16px 16px;font:400 12px/1.5 var(--mono);color:var(--silk-dim);word-break:break-all}
+.out b{color:var(--silk);font-weight:600}
+.board-cap{margin-top:14px;font-size:14px;color:var(--silk-dim)}
+.board{container-type:inline-size}
+.hex{font-size:clamp(9px,2.1cqi,13px)}
+@media (max-width:560px){.hex{font-size:12px;padding:12px}.hex .off{margin-right:8px}.fields{grid-template-columns:1fr}}
+
+/* ---------- полоса моделей ---------- */
+.strip{background:var(--mask-2);color:var(--silk);border-top:1px solid #1c6247}
+.strip .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;padding-top:20px;padding-bottom:20px}
+.strip .lbl{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--silk-dim);margin-right:8px}
+.chip{font:500 14px/1.2 var(--display);letter-spacing:.02em;padding:9px 12px;border:1px solid #2b7357;border-radius:4px}
+
+/* ---------- секции ---------- */
+section.s{padding:104px 0}
+.s-head{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:56px}
+.s-head h2,.kit h2{font-size:clamp(30px,3.6vw,46px)}
+.s-head p{color:var(--muted);font-size:18px;max-width:46ch}
+.tag{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--copper);display:block;margin-bottom:16px}
+@media (max-width:860px){section.s{padding:72px 0}.s-head{grid-template-columns:1fr;gap:16px;margin-bottom:40px}}
+code{font:500 14px var(--mono);background:var(--paper-2);padding:1px 6px;border-radius:3px;color:var(--ink)}
+
+/* шаги */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--ink)}
+.step{padding:26px 26px 8px 0}
+.step + .step{padding-left:26px;border-left:1px solid var(--line)}
+.n{font:800 15px/1 var(--display);color:var(--copper);display:block;margin-bottom:20px}
+.step h3{font-size:21px;margin-bottom:10px}
+.step p{color:var(--muted);font-size:16px}
+@media (max-width:980px){.steps{grid-template-columns:1fr 1fr}.step:nth-child(3){padding-left:0;border-left:0}.step:nth-child(n+3){border-top:1px solid var(--line);margin-top:18px}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}.step,.step + .step{padding-left:0;border-left:0}.step + .step{border-top:1px solid var(--line);margin-top:10px}}
+
+/* защита от ошибок */
+.alt{background:var(--paper-2)}
+.alt code{background:var(--paper)}
+.guards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.g{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.g.wide{grid-column:span 2;background:var(--mask);color:var(--silk);border-color:var(--mask)}
+.g h3{font-size:20px;margin-bottom:12px}
+.g p{color:var(--muted);font-size:16px}
+.g.wide p{color:#cfe0d6}
+.g .ico{width:36px;height:36px;margin-bottom:18px;color:var(--copper)}
+.branch{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;font:500 14px/1 var(--mono)}
+.branch span{padding:9px 12px;border-radius:4px;border:1px solid}
+.branch .ok{background:rgba(47,158,95,.18);border-color:#2f9e5f;color:#a6e3bf}
+.branch .no{background:rgba(217,71,58,.16);border-color:#d9473a;color:#ffb3aa}
+@media (max-width:980px){.guards{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.guards{grid-template-columns:1fr}.g.wide{grid-column:auto}}
+
+/* таблица моделей */
+.tbl{width:100%;border-collapse:collapse;font-size:16px}
+.tbl th{font:500 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 16px 14px 0;border-bottom:2px solid var(--ink)}
+.tbl td{padding:20px 16px 20px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td:first-child{font:700 18px/1.25 var(--display)}
+.tbl td:first-child small{display:block;font:400 13px/1.4 var(--body);color:var(--muted);margin-top:4px}
+.tbl .ver{font:500 14px/1.6 var(--mono)}
+.st{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.st.wait::before{background:var(--copper)}
+.tbl-note{margin-top:22px;font-size:15px;color:var(--muted);max-width:80ch}
+@media (max-width:760px){
+  .tbl thead{display:none}
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl tr{border-bottom:1px solid var(--line);padding:18px 0}
+  .tbl td{border:0;padding:4px 0}
+  .tbl td[data-l]::before{content:attr(data-l);display:block;font:500 11px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+}
+
+/* комплект */
+.kit{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.kit > div{min-width:0}
+.zip{background:var(--ink);color:#cfe0d6;border-radius:10px;padding:22px 24px;font:400 14px/1.9 var(--mono);overflow-x:auto;white-space:pre}
+.zip .d{color:var(--silk-dim)}
+.zip .f{color:var(--silk)}
+.zip .c{color:var(--copper-hi)}
+.zip .x{color:#6f8a7d}
+.kit ul{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:14px}
+.kit li{padding-left:22px;position:relative;color:var(--muted)}
+.kit li::before{content:"";position:absolute;left:0;top:.75em;width:10px;height:2px;background:var(--copper)}
+.kit li b{color:var(--ink);font-weight:600}
+@media (max-width:900px){.kit{grid-template-columns:1fr;gap:36px}}
+@media (max-width:480px){.zip{font-size:12px;padding:18px}}
+
+/* тарифы */
+.price{background:var(--mask);color:var(--silk)}
+.price .s-head p{color:#cfe0d6}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.plan{border:1px solid #2b7357;border-radius:10px;padding:32px 28px;display:flex;flex-direction:column;background:var(--mask-2)}
+.plan.hot{background:var(--silk);color:var(--ink);border-color:var(--silk)}
+.plan .pn{font:500 13px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--silk-dim)}
+.plan.hot .pn{color:#a0661f}
+.plan .cnt{font:800 54px/1 var(--display);margin:22px 0 4px}
+.plan .cnt small{font:500 17px/1 var(--body);margin-left:8px;opacity:.75}
+.plan .sum{font:600 22px/1.2 var(--body);margin:16px 0 22px}
+.plan .per{font-size:14px;opacity:.7;font-weight:400;display:block;margin-top:6px}
+.plan ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px;font-size:15px}
+.plan li{padding-left:20px;position:relative}
+.plan li::before{content:"";position:absolute;left:0;top:.5em;width:8px;height:8px;border:2px solid var(--copper);border-radius:2px}
+.plan .btn{margin-top:auto;justify-content:center}
+.price-note{margin-top:28px;font-size:15px;color:var(--silk-dim);max-width:80ch}
+@media (max-width:900px){.plans{grid-template-columns:1fr}}
+
+/* покупка */
+.buy{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.buy > div{border-top:2px solid var(--ink);padding-top:22px}
+.buy .n{margin-bottom:16px}
+.buy h3{font-size:20px;margin-bottom:10px}
+.buy p{color:var(--muted);font-size:16px}
+.code{display:inline-block;margin-top:14px;font:600 15px/1 var(--mono);letter-spacing:.1em;background:var(--paper-2);border:1px dashed #9fb0a6;padding:10px 12px;border-radius:4px}
+@media (max-width:860px){.buy{grid-template-columns:1fr}}
+
+/* FAQ */
+.faq{max-width:860px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;padding:22px 40px 22px 0;font:600 19px/1.35 var(--body);position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";position:absolute;right:6px;top:28px;width:10px;height:10px;border-right:2px solid var(--copper);border-bottom:2px solid var(--copper);transform:rotate(45deg);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(-135deg);top:33px}
+.faq details p{padding:0 0 24px;color:var(--muted);max-width:70ch}
+
+/* финал */
+.final{background:var(--mask);color:var(--silk);text-align:center;padding:100px 0}
+.final h2{font-size:clamp(32px,4.4vw,56px);max-width:18ch;margin:0 auto 20px}
+.final p{color:#cfe0d6;font-size:18px;max-width:52ch;margin:0 auto 34px}
+.final .handle{display:block;margin-top:18px;font:500 15px/1 var(--mono);color:var(--silk-dim)}
+
+footer{background:#072a1e;color:var(--silk-dim);font-size:14px;padding:32px 0}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px 32px}
+footer p{max-width:70ch}
+
+/* Так выглядит программа: настоящий снимок окна */
+.shot{background:var(--mask);color:var(--silk);padding:96px 0;border-top:1px solid #1c6247}
+.shot .s-head h2{color:var(--silk)}
+.shot .s-head p{color:var(--silk-dim)}
+.win{border-radius:10px;overflow:hidden;background:#0d1526;box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(238,244,236,.10)}
+.win img{display:block;width:100%;height:auto}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:44px}
+.notes h3{font:600 17px/1.3 var(--body);color:var(--silk);margin:0 0 8px}
+.notes p{color:var(--silk-dim);margin:0;font-size:15px;line-height:1.55}
+.notes .k{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--copper-hi);display:block;margin-bottom:12px}
+@media (max-width:860px){.shot{padding:72px 0}.notes{grid-template-columns:1fr;gap:24px}}
+@media (max-width:420px){.wrap{padding:0 16px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="7" width="18" height="18" rx="2" fill="#c98a3f"/><rect x="11" y="11" width="10" height="10" rx="1" fill="#0b3d2c"/><g fill="#c98a3f"><rect x="10" y="2" width="2" height="4"/><rect x="15" y="2" width="2" height="4"/><rect x="20" y="2" width="2" height="4"/><rect x="10" y="26" width="2" height="4"/><rect x="15" y="26" width="2" height="4"/><rect x="20" y="26" width="2" height="4"/><rect x="2" y="10" width="4" height="2"/><rect x="2" y="15" width="4" height="2"/><rect x="2" y="20" width="4" height="2"/><rect x="26" y="10" width="4" height="2"/><rect x="26" y="15" width="4" height="2"/><rect x="26" y="20" width="4" height="2"/></g></svg>
+      Генератор прошивок
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#app">Программа</a>
+      <a href="#how">Как работает</a>
+      <a href="#models">Модели</a>
+      <a href="#price">Тарифы</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <a class="btn btn-copper" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.2-8.3c.4-.4-.1-.6-.6-.2L6 13.5 1.1 12c-1.1-.3-1.1-1.1.2-1.6L20.5 3c.9-.3 1.7.2 1.4 1.3Z"/></svg>
+      Купить ключ
+    </a>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Для сервисных центров и заправщиков · Windows 7+</span>
+      <h1>FIX-прошивка под <em>серийник</em> принтера за минуту</h1>
+      <p class="lead">Подключили аппарат по USB — программа сама определит модель, считает серийный номер и CRUM, сверит версию и соберёт готовый архив с загрузчиком.</p>
+      <div class="cta">
+        <a class="btn btn-copper" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.2-8.3c.4-.4-.1-.6-.6-.2L6 13.5 1.1 12c-1.1-.3-1.1-1.1.2-1.6L20.5 3c.9-.3 1.7.2 1.4 1.3Z"/></svg>
+          Написать в Telegram
+        </a>
+        <a class="btn btn-line" href="#models">Какие модели</a>
+      </div>
+      <div class="facts"><span>HP 107 · 135 · 137</span><span>Xerox 3020 · 3025</span><span>ключ на ваш компьютер</span></div>
+    </div>
+
+    <div>
+      <div class="board">
+        <div class="board-head">
+          <span>заготовка <b>HP Laser MFP 135</b> · 3.82.01.10</span>
+          <span class="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </div>
+        <div class="hex" id="hex" aria-hidden="true"></div>
+        <div class="fields">
+          <div class="field">
+            <label for="sn">Серийный номер</label>
+            <input id="sn" value="CNB0A1B2C3" maxlength="10" autocomplete="off" spellcheck="false" autocapitalize="characters">
+          </div>
+          <div class="field">
+            <label for="crum">CRUM</label>
+            <input id="crum" value="240101A0001" maxlength="11" autocomplete="off" spellcheck="false" autocapitalize="characters">
+          </div>
+        </div>
+        <div class="out" aria-live="polite">готовая прошивка: <b id="fname">FIX_HP135_3.82.01.10_NU_CNB0A1B2C3_240101A0001.hd</b></div>
+      </div>
+      <p class="board-cap">Введите свои номера — так программа подставляет их в заготовку. Поля сами держат длину и убирают лишние символы.</p>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="wrap">
+    <span class="lbl">Поддерживаются</span>
+    <span class="chip">Xerox Phaser 3020</span>
+    <span class="chip">Xerox WorkCentre 3025BI</span>
+    <span class="chip">Xerox WorkCentre 3025NI</span>
+    <span class="chip">HP Laser 107a / 107r</span>
+    <span class="chip">HP Laser MFP 135a / 135r / 135w</span>
+    <span class="chip">HP Laser MFP 137fnw</span>
+  </div>
+</div>
+
+<section class="shot" id="app">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Программа</span><h2>Одно окно, пять шагов</h2></div>
+      <p>Бренд, модель, версия, серийник, CRUM — и кнопка «Создать прошивку». Справа сразу видно, к каким версиям подходит заготовка и какая ветка стоит на аппарате.</p>
+    </div>
+    <div class="win">
+      <img src="assets/app.webp" width="1500" height="1000" loading="lazy" alt="Окно программы: выбран Xerox Phaser 3020, заготовка V3.50.21.03, введены серийный номер и CRUM, справа фото аппарата и список подходящих версий">
+    </div>
+    <div class="notes">
+      <div><span class="k">Без установки</span><h3>Один exe и файл заготовок</h3><p>Распаковали и запустили. Python и другие программы не нужны. Windows 7, 10 и 11.</p></div>
+      <div><span class="k">Обновления</span><h3>Новые версии приходят сами</h3><p>При запуске программа проверяет обновления и ставит их по одной кнопке. Каждая сборка подписана — подменённый файл не установится.</p></div>
+      <div><span class="k">Заготовки</span><h3>Зашифрованы внутри</h3><p>Заготовки лежат в одном зашифрованном файле, расшифровка — только в памяти. На диск попадает лишь готовая прошивка.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="s" id="how">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Как работает</span><h2>От кабеля до готового архива — четыре действия</h2></div>
+      <p>Никаких HEX-редакторов и ручного поиска смещений. Номера, версия и модель читаются прямо с аппарата.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="n">1</span>
+        <h3>Считать с принтера</h3>
+        <p>Подключите аппарат по USB и нажмите одну кнопку. Модель определится сама, серийник и CRUM встанут в поля. Можно ввести и вручную.</p>
+      </div>
+      <div class="step">
+        <span class="n">2</span>
+        <h3>Сверить версию</h3>
+        <p>Программа сравнит прошивку на аппарате со списком подходящих версий и не даст собрать фикс, если он не подойдёт.</p>
+      </div>
+      <div class="step">
+        <span class="n">3</span>
+        <h3>Создать прошивку</h3>
+        <p>Номера подставляются в заготовку модели. В папке <code>output</code> появляется архив: прошивка, загрузчик и инструкция.</p>
+      </div>
+      <div class="step">
+        <span class="n">4</span>
+        <h3>Прошить</h3>
+        <p>Перетащите файл прошивки на <code>usbprns2.exe</code>. У Xerox сначала идёт <code>First_*.hd</code>, затем сам фикс — оба файла уже в архиве.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="s alt">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Защита от ошибок</span><h2>Программа не даст испортить аппарат</h2></div>
+      <p>Каждая проверка появилась после реального случая в работе. Лучше отказ с объяснением, чем мёртвая плата.</p>
+    </div>
+    <div class="guards">
+      <div class="g wide">
+        <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="9" width="26" height="18" rx="2"/><path d="M11 9V5M18 9V5M25 9V5M11 31v-4M18 31v-4M25 31v-4"/><path d="m13 18 4 4 7-8"/></svg>
+        <h3>Сверка ветки прошивки Xerox</h3>
+        <p>V3.50.03 и V3.50.21 — разные платы. Прошивка не той ветки выводит плату из строя, и аппарат больше не включается. Программа читает версию с аппарата и запрещает сборку при несовпадении. Если номера ввели вручную — спросит, какая ветка стоит, и наугад собирать не станет.</p>
+        <div class="branch"><span class="ok">V3.50.21 → собирается</span><span class="no">V3.50.03 → сборка запрещена</span></div>
+      </div>
+      <div class="g">
+        <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M8 14h20v12H8z"/><path d="M12 14V6h12v8M12 22h12"/><path d="M5 31 31 5"/></svg>
+        <h3>Не трогает чужие принтеры</h3>
+        <p>Опрашиваются только лазерные Samsung, Xerox и HP. Струйник не получит служебные байты и не напечатает мусор.</p>
+      </div>
+      <div class="g">
+        <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 10h24M6 18h16M6 26h10"/><circle cx="27" cy="25" r="5"/><path d="m25 25 1.6 1.6L29.5 23.5"/></svg>
+        <h3>Список подходящих версий</h3>
+        <p>Для каждой модели виден список версий. Блок меняет цвет: зелёный — подходит, красный — нет, с подсказкой про программатор.</p>
+      </div>
+      <div class="g">
+        <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="12" width="26" height="12" rx="2"/><path d="M10 18h4M17 18h2M22 18h4"/></svg>
+        <h3>Поля без опечаток</h3>
+        <p>Длина номера берётся из заготовки, буквы приводятся к заглавным, кириллица, пробелы и дефисы срезаются даже при вставке из буфера.</p>
+      </div>
+      <div class="g">
+        <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="7" y="6" width="22" height="24" rx="2"/><circle cx="18" cy="17" r="5"/><path d="M14 26h8"/></svg>
+        <h3>Фото платы с разъёмом CRUM</h3>
+        <p>Для Xerox — снимок платы форматера, где обведено, какой кабель отключить после прошивки. Памятка показывается прямо в окне.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="s" id="models">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Модели</span><h2>Что поддерживается сейчас</h2></div>
+      <p>Заготовка подходит не к любой версии на аппарате. Список версий виден в программе и сверяется автоматически.</p>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Модель</th><th>Версия на аппарате</th><th>Что в комплекте</th><th>На аппаратах</th></tr></thead>
+      <tbody>
+        <tr><td>Xerox Phaser 3020<small>ветка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.06 и выше</td><td data-l="Что в комплекте">First + FIX, загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>Xerox WorkCentre 3025BI<small>ветка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.07 и выше</td><td data-l="Что в комплекте">First + FIX, загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>Xerox WorkCentre 3025NI<small>ветка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.10 и выше</td><td data-l="Что в комплекте">First + FIX, загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>HP Laser MFP 135a / 135r / 135w<small>общая заготовка</small></td><td class="ver" data-l="Версия на аппарате">3.82.01.10<small>с 3.82.01.14 — сначала программатор</small></td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>HP Laser MFP 137fnw</td><td class="ver" data-l="Версия на аппарате">3.82.01.01, 3.82.01.02</td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st">проверено, ~10 аппаратов</span></td></tr>
+        <tr><td>HP Laser 107a / 107r<small>общая заготовка</small></td><td class="ver" data-l="Версия на аппарате">3.82.01.02, 3.82.01.08</td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st wait">в проверке</span></td></tr>
+      </tbody>
+    </table>
+    <p class="tbl-note">Если на HP стоит версия новее — её понижают программатором по дампу, а потом заливают фикс. Дампы сохраняются из программы бесплатно, без списания с ключа. Нужна модель, которой нет в списке? Напишите — заготовки добавляются.</p>
+  </div>
+</section>
+
+<section class="s alt">
+  <div class="wrap kit">
+    <div>
+      <span class="tag">Комплект</span>
+      <h2>Архив, который можно сразу нести к аппарату</h2>
+      <ul>
+        <li><b>Номера аппарата в имени файла</b> — не перепутаете, какая прошивка для какого принтера.</li>
+        <li><b>Загрузчик внутри</b> — ничего не нужно искать и докачивать.</li>
+        <li><b>Инструкция по модели</b> читается даже в блокноте Windows 7.</li>
+        <li><b>Отчёт о сборке</b> можно скопировать и отправить коллеге.</li>
+      </ul>
+    </div>
+    <div class="zip" role="img" aria-label="Пример содержимого архива для Xerox WorkCentre 3025BI"><span class="d">output\</span>
+<span class="d">└─ </span><span class="c">FIX_WC3025BI_V3.50.21.03_3482019951.zip</span>
+<span class="d">   ├─ </span><span class="f">First_WC3025BI_V3.50.21.03.hd</span>
+<span class="d">   ├─ </span><span class="f">FIX_WC3025BI_V3.50.21.03_3482019951.hd</span>
+<span class="d">   ├─ </span><span class="f">usbprns2.exe</span>   <span class="x"># загрузчик</span>
+<span class="d">   └─ </span><span class="f">Instruction.txt</span></div>
+  </div>
+</section>
+
+<section class="s price" id="price">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Тарифы</span><h2>Платите за собранные прошивки</h2></div>
+      <p>Ключ выписывается под ваш компьютер. Попытка списывается только после того, как прошивка собрана.</p>
+    </div>
+    <!-- ЦЕНЫ: поменяйте суммы в трёх блоках class="sum" ниже -->
+    <div class="plans">
+      <div class="plan">
+        <span class="pn">Попробовать</span>
+        <div class="cnt">10<small>прошивок</small></div>
+        <div class="sum">3 000 ₽<span class="per">300 ₽ за прошивку</span></div>
+        <ul><li>Все модели из списка</li><li>Дампы для программатора</li><li>Помощь с первым аппаратом</li></ul>
+        <a class="btn btn-line" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">Выбрать</a>
+      </div>
+      <div class="plan hot">
+        <span class="pn">Для сервиса</span>
+        <div class="cnt">50<small>прошивок</small></div>
+        <div class="sum">12 500 ₽<span class="per">250 ₽ за прошивку</span></div>
+        <ul><li>Все модели из списка</li><li>Новые заготовки по мере появления</li><li>Ответ в Telegram в приоритете</li></ul>
+        <a class="btn btn-copper" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">Выбрать</a>
+      </div>
+      <div class="plan">
+        <span class="pn">Без ограничения</span>
+        <div class="cnt">∞<small>на 30 дней</small></div>
+        <div class="sum">20 000 ₽<span class="per">для потока аппаратов</span></div>
+        <ul><li>Сколько угодно прошивок за срок</li><li>Новые заготовки по мере появления</li><li>Продление — новым ключом</li></ul>
+        <a class="btn btn-line" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">Выбрать</a>
+      </div>
+    </div>
+    <p class="price-note">Остаток прошивок виден в шапке программы. Закончились — выписывается новый ключ, счёт начинается заново. Нужно другое количество — напишите.</p>
+  </div>
+</section>
+
+<section class="s">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Как купить</span><h2>Ключ приходит файлом за пару минут</h2></div>
+      <p>Без регистрации, логинов и паролей. Ключ — это один файл рядом с программой.</p>
+    </div>
+    <div class="buy">
+      <div>
+        <span class="n">1</span>
+        <h3>Получите программу</h3>
+        <p>Напишите в Telegram — пришлём архив с программой и заготовками. Установка не нужна.</p>
+      </div>
+      <div>
+        <span class="n">2</span>
+        <h3>Отправьте код компьютера</h3>
+        <p>При первом запуске программа сама покажет код вашего компьютера с кнопкой «Скопировать».</p>
+        <span class="code">A1B2-C3D4-E5F6</span>
+      </div>
+      <div>
+        <span class="n">3</span>
+        <h3>Положите licence.key</h3>
+        <p>После оплаты придёт файл ключа. Положите его рядом с программой — и можно собирать прошивки.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="s alt" id="faq">
+  <div class="wrap">
+    <div class="s-head">
+      <div><span class="tag">Вопросы</span><h2>Частые вопросы</h2></div>
+      <p>Не нашли ответ — спросите в Telegram.</p>
+    </div>
+    <div class="faq">
+      <details><summary>Программа сама прошивает принтер?</summary><p>Нет, она собирает файл прошивки под конкретный аппарат и кладёт в архив загрузчик. Прошивка — перетаскиванием файла на usbprns2.exe, это занимает пару минут.</p></details>
+      <details><summary>На аппарате стоит версия новее, чем в списке. Что делать?</summary><p>Для HP версию понижают программатором по дампу, а затем заливают фикс. Дамп для каждой модели HP сохраняется из программы бесплатно. Для Xerox дампов нет — такой аппарат не подойдёт.</p></details>
+      <details><summary>Спишется ли попытка, если сборка не удалась?</summary><p>Нет. Счётчик уменьшается только после того, как прошивка собрана. Сохранение дампов тоже ничего не стоит.</p></details>
+      <details><summary>Можно поставить на несколько компьютеров?</summary><p>Ключ работает на том компьютере, под код которого выписан. Для второго рабочего места нужен свой ключ.</p></details>
+      <details><summary>Я переустановил Windows, и ключ перестал работать</summary><p>При переустановке системы меняется код компьютера. Пришлите новый код — ключ перевыпустим.</p></details>
+      <details><summary>Как обновлять программу?</summary><p>Никак — она делает это сама. При запуске проверяет, вышла ли новая версия, и предлагает поставить её одной кнопкой. Ключ и счётчик сохраняются. Каждая сборка подписана: программа поставит только настоящее обновление.</p></details>
+      <details><summary>Какая нужна Windows?</summary><p>Windows 7 и новее. Python и другие программы ставить не нужно, всё внутри одного exe.</p></details>
+      <details><summary>Что делать после прошивки Xerox?</summary><p>Сбросить сетевые настройки, выключить аппарат и отключить кабель CRUM на плате форматера. Программа показывает эту памятку и фото платы с нужным разъёмом.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>Следующий аппарат — уже с готовой прошивкой</h2>
+    <p>Напишите в Telegram: подскажем по модели и версии, пришлём программу и выпишем ключ.</p>
+    <a class="btn btn-copper" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.2-8.3c.4-.4-.1-.6-.6-.2L6 13.5 1.1 12c-1.1-.3-1.1-1.1.2-1.6L20.5 3c.9-.3 1.7.2 1.4 1.3Z"/></svg>
+      Написать в Telegram
+    </a>
+    <span class="handle">@isspaneccxx</span>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Spanniard · Генератор прошивок</span>
+    <p>HP и Xerox — товарные знаки их владельцев. Программа не связана с этими компаниями и не одобрена ими. Прошивка аппарата выполняется на ваш риск: перед заливкой снимайте дамп.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var hexEl = document.getElementById('hex');
+  var sn = document.getElementById('sn');
+  var crum = document.getElementById('crum');
+  var fname = document.getElementById('fname');
+  var BASE = 0x0004A3C0;
+  var SN_AT = 34;               // серийник, затем 5 байт служебных, затем "0CRUM-", затем CRUM
+  var TAG_AT = SN_AT + 15;
+  var CRUM_AT = TAG_AT + 6;
+
+  // кусок заготовки: псевдослучайные байты, как в настоящем .hd
+  var seed = 0x5eed1e;
+  function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed; }
+  var bytes = [];
+  for (var i = 0; i < 128; i++) bytes.push((rnd() >> 16) & 0xff);
+  for (i = 0; i < 5; i++) bytes[SN_AT + 10 + i] = 0x2e;
+  put('0CRUM-', TAG_AT);
+
+  var prev = null;
+  function put(str, at){ for (var k = 0; k < str.length; k++) bytes[at + k] = str.charCodeAt(k); }
+  function hx(n, w){ var s = n.toString(16).toUpperCase(); while (s.length < w) s = '0' + s; return s; }
+  function esc(c){ return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c; }
+  function cls(i){
+    if ((i >= SN_AT && i < SN_AT + 10) || (i >= CRUM_AT && i < CRUM_AT + 11)) return 'hit';
+    if (i >= SN_AT + 10 && i < CRUM_AT) return 'crumtag';
+    return 'a';
+  }
+  function pad(v, n){ while (v.length < n) v += '0'; return v; }
+
+  function render(flash){
+    put(pad(sn.value, 10), SN_AT);
+    put(pad(crum.value, 11), CRUM_AT);
+    var cols = window.matchMedia('(max-width: 560px)').matches ? 8 : 16;
+    var html = '';
+    for (var r = 0; r < 128; r += cols){
+      var line = '<span class="off">' + hx(BASE + r, 8) + '</span>';
+      var asc = '';
+      for (var c = 0; c < cols; c++){
+        var i = r + c, b = bytes[i], k = cls(i);
+        var f = flash && prev && prev[i] !== b ? ' flash' : '';
+        if (c === 8) line += '<span class="gap"></span>';
+        line += '<span class="b ' + (k === 'a' ? '' : k) + f + '">' + hx(b, 2) + '</span>';
+        asc += '<span class="' + k + f + '">' + esc(b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : '.') + '</span>';
+      }
+      html += line + '<span class="asc">' + asc + '</span>\n';
+    }
+    hexEl.innerHTML = html;
+    if (flash) setTimeout(function(){
+      var fl = hexEl.querySelectorAll('.flash');
+      for (var j = 0; j < fl.length; j++) fl[j].classList.remove('flash');
+    }, 380);
+    prev = bytes.slice();
+    fname.textContent = 'FIX_HP135_3.82.01.10_NU_' +(sn.value || '…') + '_' + (crum.value || '…') + '.hd';
+  }
+
+  // как в программе: заглавные, только латиница и цифры, длина по заготовке
+  function clamp(el, len){
+    var v = el.value.toUpperCase().replace(/CRUM-/g, '').replace(/[^A-Z0-9]/g, '').slice(0, len);
+    if (v !== el.value){
+      var p = Math.min(el.selectionStart || v.length, v.length);
+      el.value = v;
+      try { el.setSelectionRange(p, p); } catch (e) {}
+    }
+  }
+  var typing = null;
+  function stopDemo(){ if (typing){ clearTimeout(typing); typing = null; } }
+  sn.addEventListener('input', function(){ stopDemo(); clamp(sn, 10); render(true); });
+  crum.addEventListener('input', function(){ stopDemo(); clamp(crum, 11); render(true); });
+  sn.addEventListener('focus', stopDemo);
+  crum.addEventListener('focus', stopDemo);
+  window.addEventListener('resize', function(){ render(false); });
+
+  render(false);
+
+  // демо: номера «нового аппарата» набираются сами, пока человек не взялся за поля
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    var plan = [[sn, 'CNB3XK72PL'], [crum, '241005B18C4']];
+    var step = 0, pos = 0;
+    var tick = function(){
+      var el = plan[step][0], target = plan[step][1];
+      el.value = target.slice(0, ++pos) + el.value.slice(pos);
+      render(true);
+      if (pos >= target.length){
+        step++; pos = 0;
+        if (step >= plan.length){ typing = null; return; }
+        typing = setTimeout(tick, 700);
+        return;
+      }
+      typing = setTimeout(tick, 110);
+    };
+    typing = setTimeout(tick, 1400);
+  }
+})();
+</script>
+</body>
+</html>
