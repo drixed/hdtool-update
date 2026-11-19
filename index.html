@@ -168,7 +168,7 @@ code{font:500 14px var(--mono);background:var(--paper-2);padding:1px 6px;border-
 /* комплект */
 .kit{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
 .kit > div{min-width:0}
-.zip{background:#0a1120;border:1px solid var(--line);color:#c3cfe4;border-radius:10px;padding:22px 24px;font:400 14px/1.9 var(--mono);overflow-x:auto;white-space:pre}
+.zip{background:#0a1120;border:1px solid var(--line);color:#c3cfe4;border-radius:10px;padding:22px 24px;font:400 13px/1.9 var(--mono);overflow-x:auto;white-space:pre}
 .zip .d{color:var(--silk-dim)}
 .zip .f{color:var(--silk)}
 .zip .c{color:var(--copper-hi)}
@@ -284,7 +284,7 @@ footer p{max-width:70ch}
     <div>
       <div class="board">
         <div class="board-head">
-          <span>заготовка <b>HP Laser MFP 135</b> · 3.82.01.10</span>
+          <span>прошивка <b>HP Laser MFP 135</b> · 3.82.01.10</span>
           <span class="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         </div>
         <div class="hex" id="hex" aria-hidden="true"></div>
@@ -300,7 +300,7 @@ footer p{max-width:70ch}
         </div>
         <div class="out" aria-live="polite">готовая прошивка: <b id="fname">FIX_HP135_3.82.01.10_NU_CNB0A1B2C3_240101A0001.hd</b></div>
       </div>
-      <p class="board-cap">Введите свои номера — так программа подставляет их в заготовку. Поля сами держат длину и убирают лишние символы.</p>
+      <p class="board-cap">Попробуйте ввести свои номера — так программа подставляет их в прошивку.</p>
     </div>
   </div>
 </section>
@@ -321,15 +321,15 @@ footer p{max-width:70ch}
   <div class="wrap">
     <div class="s-head">
       <div><span class="tag">Программа</span><h2>Одно окно, пять шагов</h2></div>
-      <p>Бренд, модель, версия, серийник, CRUM — и кнопка «Создать прошивку». Справа сразу видно, к каким версиям подходит заготовка и какая ветка стоит на аппарате.</p>
+      <p>Бренд, модель, версия, серийник, CRUM — и кнопка «Создать прошивку». Справа сразу видно, подойдёт ли прошивка к версии, которая стоит на аппарате.</p>
     </div>
     <div class="win">
-      <img src="assets/app.webp" width="1500" height="1000" loading="lazy" alt="Окно программы: выбран Xerox Phaser 3020, заготовка V3.50.21.03, введены серийный номер и CRUM, справа фото аппарата и список подходящих версий">
+      <img src="assets/app.webp" width="1500" height="1000" loading="lazy" alt="Окно программы: выбран Xerox Phaser 3020, прошивка V3.50.21.03, введены серийный номер и CRUM, справа фото аппарата и список подходящих версий">
     </div>
     <div class="notes">
-      <div><span class="k">Без установки</span><h3>Один exe и файл заготовок</h3><p>Распаковали и запустили. Python и другие программы не нужны. Windows 7, 10 и 11.</p></div>
-      <div><span class="k">Обновления</span><h3>Новые версии приходят сами</h3><p>При запуске программа проверяет обновления и ставит их по одной кнопке. Каждая сборка подписана — подменённый файл не установится.</p></div>
-      <div><span class="k">Заготовки</span><h3>Зашифрованы внутри</h3><p>Заготовки лежат в одном зашифрованном файле, расшифровка — только в памяти. На диск попадает лишь готовая прошивка.</p></div>
+      <div><span class="k">Запуск</span><h3>Ничего не нужно устанавливать</h3><p>Распаковали папку и запустили. Работает на Windows 7, 10 и 11.</p></div>
+      <div><span class="k">Обновления</span><h3>Новые версии приходят сами</h3><p>Программа сама узнаёт о новой версии и ставит её по одной кнопке. Ключ и остаток прошивок сохраняются.</p></div>
+      <div><span class="k">Подсказки</span><h3>Всё по модели — в одном окне</h3><p>Фото аппарата, подходящие версии и памятка, что делать после прошивки, — справа, рядом с полями.</p></div>
     </div>
   </div>
 </section>
@@ -338,7 +338,7 @@ footer p{max-width:70ch}
   <div class="wrap">
     <div class="s-head">
       <div><span class="tag">Как работает</span><h2>От кабеля до готового архива — четыре действия</h2></div>
-      <p>Никаких HEX-редакторов и ручного поиска смещений. Номера, версия и модель читаются прямо с аппарата.</p>
+      <p>Ничего не нужно искать и править вручную: модель, номера и версия читаются прямо с аппарата.</p>
     </div>
     <div class="steps">
       <div class="step">
@@ -354,12 +354,12 @@ footer p{max-width:70ch}
       <div class="step">
         <span class="n">3</span>
         <h3>Создать прошивку</h3>
-        <p>Номера подставляются в заготовку модели. В папке <code>output</code> появляется архив: прошивка, загрузчик и инструкция.</p>
+        <p>Программа подставит номера и сложит в один архив всё нужное: прошивку, загрузчик и инструкцию.</p>
       </div>
       <div class="step">
         <span class="n">4</span>
         <h3>Прошить</h3>
-        <p>Перетащите файл прошивки на <code>usbprns2.exe</code>. У Xerox сначала идёт <code>First_*.hd</code>, затем сам фикс — оба файла уже в архиве.</p>
+        <p>Перетащите файл прошивки на загрузчик из того же архива. У Xerox прошивка в два шага — оба файла и порядок есть в инструкции.</p>
       </div>
     </div>
   </div>
@@ -374,14 +374,14 @@ footer p{max-width:70ch}
     <div class="guards">
       <div class="g wide">
         <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="9" width="26" height="18" rx="2"/><path d="M11 9V5M18 9V5M25 9V5M11 31v-4M18 31v-4M25 31v-4"/><path d="m13 18 4 4 7-8"/></svg>
-        <h3>Сверка ветки прошивки Xerox</h3>
-        <p>V3.50.03 и V3.50.21 — разные платы. Прошивка не той ветки выводит плату из строя, и аппарат больше не включается. Программа читает версию с аппарата и запрещает сборку при несовпадении. Если номера ввели вручную — спросит, какая ветка стоит, и наугад собирать не станет.</p>
+        <h3>Проверка версии у Xerox</h3>
+        <p>Прошивки V3.50.03 и V3.50.21 ставятся на разные платы. Не та прошивка выводит плату из строя — аппарат больше не включается. Программа читает версию с аппарата и не даст собрать прошивку, если она не подходит. Номера ввели вручную — спросит, какая версия стоит, и наугад собирать не станет.</p>
         <div class="branch"><span class="ok">V3.50.21 → собирается</span><span class="no">V3.50.03 → сборка запрещена</span></div>
       </div>
       <div class="g">
         <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M8 14h20v12H8z"/><path d="M12 14V6h12v8M12 22h12"/><path d="M5 31 31 5"/></svg>
         <h3>Не трогает чужие принтеры</h3>
-        <p>Опрашиваются только лазерные Samsung, Xerox и HP. Струйник не получит служебные байты и не напечатает мусор.</p>
+        <p>Программа работает только с лазерными Samsung, Xerox и HP. Если подключён струйный принтер, она его не тронет — он не начнёт печатать мусор.</p>
       </div>
       <div class="g">
         <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 10h24M6 18h16M6 26h10"/><circle cx="27" cy="25" r="5"/><path d="m25 25 1.6 1.6L29.5 23.5"/></svg>
@@ -391,7 +391,7 @@ footer p{max-width:70ch}
       <div class="g">
         <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="12" width="26" height="12" rx="2"/><path d="M10 18h4M17 18h2M22 18h4"/></svg>
         <h3>Поля без опечаток</h3>
-        <p>Длина номера берётся из заготовки, буквы приводятся к заглавным, кириллица, пробелы и дефисы срезаются даже при вставке из буфера.</p>
+        <p>Поле само следит за длиной номера, делает буквы заглавными и убирает пробелы, дефисы и русские буквы — даже если номер вставили копированием.</p>
       </div>
       <div class="g">
         <svg class="ico" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="7" y="6" width="22" height="24" rx="2"/><circle cx="18" cy="17" r="5"/><path d="M14 26h8"/></svg>
@@ -411,15 +411,15 @@ footer p{max-width:70ch}
     <table class="tbl">
       <thead><tr><th>Модель</th><th>Версия на аппарате</th><th>Что в комплекте</th><th>На аппаратах</th></tr></thead>
       <tbody>
-        <tr><td>Xerox Phaser 3020<small>ветка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.06 и выше</td><td data-l="Что в комплекте">First + FIX, загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
-        <tr><td>Xerox WorkCentre 3025BI<small>ветка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.07 и выше</td><td data-l="Что в комплекте">First + FIX, загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
-        <tr><td>Xerox WorkCentre 3025NI<small>ветка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.10 и выше</td><td data-l="Что в комплекте">First + FIX, загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
-        <tr><td>HP Laser MFP 135a / 135r / 135w<small>общая заготовка</small></td><td class="ver" data-l="Версия на аппарате">3.82.01.10<small>с 3.82.01.14 — сначала программатор</small></td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>Xerox Phaser 3020<small>прошивка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.06 и выше</td><td data-l="Что в комплекте">прошивка (2 файла), загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>Xerox WorkCentre 3025BI<small>прошивка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.07 и выше</td><td data-l="Что в комплекте">прошивка (2 файла), загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>Xerox WorkCentre 3025NI<small>прошивка V3.50.21</small></td><td class="ver" data-l="Версия на аппарате">21.03, 21.10 и выше</td><td data-l="Что в комплекте">прошивка (2 файла), загрузчик, инструкция, фото платы</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
+        <tr><td>HP Laser MFP 135a / 135r / 135w<small>одна прошивка на все исполнения</small></td><td class="ver" data-l="Версия на аппарате">3.82.01.10<small>с 3.82.01.14 — сначала программатор</small></td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st">проверено</span></td></tr>
         <tr><td>HP Laser MFP 137fnw</td><td class="ver" data-l="Версия на аппарате">3.82.01.01, 3.82.01.02</td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st">проверено, ~10 аппаратов</span></td></tr>
-        <tr><td>HP Laser 107a / 107r<small>общая заготовка</small></td><td class="ver" data-l="Версия на аппарате">3.82.01.02, 3.82.01.08</td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st wait">в проверке</span></td></tr>
+        <tr><td>HP Laser 107a / 107r<small>одна прошивка на все исполнения</small></td><td class="ver" data-l="Версия на аппарате">3.82.01.02, 3.82.01.08</td><td data-l="Что в комплекте">FIX, загрузчик, инструкция, дамп для программатора</td><td data-l="На аппаратах"><span class="st wait">в проверке</span></td></tr>
       </tbody>
     </table>
-    <p class="tbl-note">Если на HP стоит версия новее — её понижают программатором по дампу, а потом заливают фикс. Дампы сохраняются из программы бесплатно, без списания с ключа. Нужна модель, которой нет в списке? Напишите — заготовки добавляются.</p>
+    <p class="tbl-note">Если на HP стоит версия новее — её понижают программатором по дампу, а потом заливают фикс. Дампы сохраняются из программы бесплатно, без списания с ключа. Нужна модель, которой нет в списке? Напишите — модели добавляются.</p>
   </div>
 </section>
 
@@ -431,16 +431,15 @@ footer p{max-width:70ch}
       <ul>
         <li><b>Номера аппарата в имени файла</b> — не перепутаете, какая прошивка для какого принтера.</li>
         <li><b>Загрузчик внутри</b> — ничего не нужно искать и докачивать.</li>
-        <li><b>Инструкция по модели</b> читается даже в блокноте Windows 7.</li>
+        <li><b>Инструкция по модели</b> — что и в каком порядке делать.</li>
         <li><b>Отчёт о сборке</b> можно скопировать и отправить коллеге.</li>
       </ul>
     </div>
-    <div class="zip" role="img" aria-label="Пример содержимого архива для Xerox WorkCentre 3025BI"><span class="d">output\</span>
-<span class="d">└─ </span><span class="c">FIX_WC3025BI_V3.50.21.03_3482019951.zip</span>
-<span class="d">   ├─ </span><span class="f">First_WC3025BI_V3.50.21.03.hd</span>
-<span class="d">   ├─ </span><span class="f">FIX_WC3025BI_V3.50.21.03_3482019951.hd</span>
-<span class="d">   ├─ </span><span class="f">usbprns2.exe</span>   <span class="x"># загрузчик</span>
-<span class="d">   └─ </span><span class="f">Instruction.txt</span></div>
+    <div class="zip" role="img" aria-label="Пример содержимого архива для Xerox WorkCentre 3025BI"><span class="c">FIX_WC3025BI_V3.50.21.03_1234509876.zip</span>
+<span class="d">├─ </span><span class="f">First_WC3025BI_V3.50.21.03.hd</span>  <span class="x"># шаг 1</span>
+<span class="d">├─ </span><span class="f">FIX_WC3025BI_V3.50.21.03_1234509876.hd</span>  <span class="x"># шаг 2</span>
+<span class="d">├─ </span><span class="f">usbprns2.exe</span>  <span class="x"># загрузчик</span>
+<span class="d">└─ </span><span class="f">Instruction.txt</span>  <span class="x"># инструкция</span></div>
   </div>
 </section>
 
@@ -463,14 +462,14 @@ footer p{max-width:70ch}
         <span class="pn">Для сервиса</span>
         <div class="cnt">50<small>прошивок</small></div>
         <div class="sum">75 000 ₸<span class="per">1 500 ₸ за прошивку</span></div>
-        <ul><li>Все модели из списка</li><li>Новые заготовки по мере появления</li><li>Ответ в Telegram в приоритете</li></ul>
+        <ul><li>Все модели из списка</li><li>Новые модели по мере появления</li><li>Ответ в Telegram в приоритете</li></ul>
         <a class="btn btn-copper" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">Выбрать</a>
       </div>
       <div class="plan">
         <span class="pn">Без ограничения</span>
         <div class="cnt">∞<small>на 30 дней</small></div>
         <div class="sum">120 000 ₸<span class="per">для потока аппаратов</span></div>
-        <ul><li>Сколько угодно прошивок за срок</li><li>Новые заготовки по мере появления</li><li>Продление — новым ключом</li></ul>
+        <ul><li>Сколько угодно прошивок за срок</li><li>Новые модели по мере появления</li><li>Продление — новым ключом</li></ul>
         <a class="btn btn-line" href="https://t.me/isspaneccxx" target="_blank" rel="noopener">Выбрать</a>
       </div>
     </div>
@@ -488,7 +487,7 @@ footer p{max-width:70ch}
       <div>
         <span class="n">1</span>
         <h3>Получите программу</h3>
-        <p>Напишите в Telegram — пришлём архив с программой и заготовками. Установка не нужна.</p>
+        <p>Напишите в Telegram — пришлём программу. Устанавливать её не нужно.</p>
       </div>
       <div>
         <span class="n">2</span>
@@ -512,13 +511,13 @@ footer p{max-width:70ch}
       <p>Не нашли ответ — спросите в Telegram.</p>
     </div>
     <div class="faq">
-      <details><summary>Программа сама прошивает принтер?</summary><p>Нет, она собирает файл прошивки под конкретный аппарат и кладёт в архив загрузчик. Прошивка — перетаскиванием файла на usbprns2.exe, это занимает пару минут.</p></details>
+      <details><summary>Программа сама прошивает принтер?</summary><p>Нет, она собирает файл прошивки под конкретный аппарат и кладёт в архив загрузчик. Прошивают так: файл перетаскивают на загрузчик — это пара минут.</p></details>
       <details><summary>На аппарате стоит версия новее, чем в списке. Что делать?</summary><p>Для HP версию понижают программатором по дампу, а затем заливают фикс. Дамп для каждой модели HP сохраняется из программы бесплатно. Для Xerox дампов нет — такой аппарат не подойдёт.</p></details>
       <details><summary>Спишется ли попытка, если сборка не удалась?</summary><p>Нет. Счётчик уменьшается только после того, как прошивка собрана. Сохранение дампов тоже ничего не стоит.</p></details>
       <details><summary>Можно поставить на несколько компьютеров?</summary><p>Ключ работает на том компьютере, под код которого выписан. Для второго рабочего места нужен свой ключ.</p></details>
       <details><summary>Я переустановил Windows, и ключ перестал работать</summary><p>При переустановке системы меняется код компьютера. Пришлите новый код — ключ перевыпустим.</p></details>
-      <details><summary>Как обновлять программу?</summary><p>Никак — она делает это сама. При запуске проверяет, вышла ли новая версия, и предлагает поставить её одной кнопкой. Ключ и счётчик сохраняются. Каждая сборка подписана: программа поставит только настоящее обновление.</p></details>
-      <details><summary>Какая нужна Windows?</summary><p>Windows 7 и новее. Python и другие программы ставить не нужно, всё внутри одного exe.</p></details>
+      <details><summary>Как обновлять программу?</summary><p>Никак — она делает это сама. При запуске проверяет, вышла ли новая версия, и предлагает поставить её одной кнопкой. Ключ и остаток прошивок сохраняются. Ставятся только наши обновления — подделку программа не примет.</p></details>
+      <details><summary>Какая нужна Windows?</summary><p>Windows 7, 10 или 11. Больше ничего ставить не нужно.</p></details>
       <details><summary>Что делать после прошивки Xerox?</summary><p>Сбросить сетевые настройки, выключить аппарат и отключить кабель CRUM на плате форматера. Программа показывает эту памятку и фото платы с нужным разъёмом.</p></details>
     </div>
   </div>
